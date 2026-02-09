@@ -1,0 +1,157 @@
+local Translations = {
+    ["Silent Aim"] = "静默瞄准",
+    ["Silent Aim Toggle"] = "静默瞄准开关",
+    ["FOV Circle"] = "视野圈",
+    ["FOV Size"] = "视野大小",
+    ["Target Part"] = "目标部位",
+    ["Head"] = "头部",
+    ["Aimbot"] = "自瞄",
+    ["Aimbot Toggle"] = "自瞄开关",
+    ["Smoothness"] = "平滑度",
+    ["Auto Prediction"] = "自动预判",
+    ["Prediction Strength"] = "预判强度",
+    ["Skip Friends"] = "忽略好友",
+    ["Multi Target"] = "多目标",
+    ["Distance Check"] = "距离检测",
+    ["Max Distance"] = "最大距离",
+    ["Hitbox Expander"] = "命中盒扩展",
+    ["Enable Hitbox Expander"] = "启用命中盒扩展",
+    ["Hitbox Size"] = "命中盒大小",
+    ["Hitbox Transparency"] = "命中盒透明度",
+    ["Exclude Teams"] = "排除队伍",
+    ["Movement"] = "移动",
+    ["Fly"] = "飞行",
+    ["Fly Speed"] = "飞行速度",
+    ["Speed Hack"] = "速度修改",
+    ["Speed Multiplier"] = "速度倍率",
+    ["Infinite Jump"] = "无限跳跃",
+    ["Noclip"] = "无碰撞",
+    ["Gun Mods"] = "枪械修改",
+    ["Infinite Ammo"] = "无限弹药",
+    ["No Recoil"] = "无后坐力",
+    ["Always Auto"] = "全自动",
+    ["Always Chambered"] = "始终上膛",
+    ["Visuals"] = "视觉设置",
+    ["Enable ESP"] = "启用ESP透视",
+    ["Name ESP"] = "名字透视",
+    ["Distance ESP"] = "距离透视",
+    ["Box ESP"] = "方框透视",
+    ["Box Outline"] = "方框轮廓",
+    ["Box Fill"] = "方框填充",
+    ["Weapon ESP"] = "武器透视",
+    ["Health Bar"] = "血条",
+    ["Health Text"] = "血量文字",
+    ["Tracers"] = "弹道线",
+    ["Tracer Origin"] = "弹道线起点",
+    ["Bottom"] = "底部",
+    ["Chams"] = "透视上色",
+    ["Chams Fill Transparency"] = "透视上色填充透明度",
+    ["Chams Outline Transparency"] = "透视上色轮廓透明度",
+    ["Off Screen Arrow"] = "屏幕外箭头",
+    ["ESP Settings"] = "ESP设置",
+    ["Use Max Distance"] = "使用最大距离",
+    ["Text Size"] = "文字大小",
+    ["Arrow Size"] = "箭头大小",
+    ["Arrow Radius"] = "箭头半径",
+    ["Use Team Colors"] = "使用队伍颜色",
+    ["Text Font"] = "文字字体",
+    ["Autofarm"] = "自动挂机",
+    ["Collect Money"] = "收集金钱",
+    ["Auto Rebirth"] = "自动重生",
+    ["AutoFarm [Complete Tycooon]"] = "自动挂机 [完成大亨模式]",
+    ["Auto Farm Crates"] = "自动开箱子",
+    ["Auto Collect Airdrops"] = "自动收集空投",
+    ["Auto Farm [Complete + Crates]"] = "自动挂机 [完成+开箱子]",
+    ["UI Settings"] = "UI设置",
+    ["Code"] = "代码",
+    ["Theme list"] = "主题列表",
+    ["Default"] = "默认",
+    ["Set as default"] = "设为默认",
+    ["Custom theme name"] = "自定义主题名称",
+    ["Create theme"] = "创建主题",
+    ["Custom themes"] = "自定义主题",
+    ["Load theme"] = "加载主题",
+    ["Overwrite theme"] = "覆盖主题",
+    ["Delete theme"] = "删除主题",
+    ["Refresh list"] = "刷新列表",
+    ["Reset default"] = "重置默认",
+    ["Background color"] = "背景颜色",
+    ["Main color"] = "主色",
+    ["Accent color"] = "强调色",
+    ["Outline color"] = "轮廓色",
+    ["Font color"] = "字体颜色",
+    ["Font Face"] = "字体",
+    ["Menu"] = "菜单",
+    ["Open Keybind Menu"] = "打开按键绑定菜单",
+    ["Custom Cursor"] = "自定义光标",
+    ["Menu Keybind"] = "菜单按键",
+    ["Unload"] = "卸载",
+    ["Configuration"] = "配置",
+    ["Config Name"] = "配置名称",
+    ["Create Config"] = "创建配置",
+    ["Select Config"] = "选择配置",
+    ["Save Config"] = "保存配置",
+    ["Load Config"] = "加载配置",
+    ["Delete Config"] = "删除配置",
+    ["Set AutoLoad"] = "设置自动加载",
+    ["Remove AutoLoad"] = "移除自动加载"
+}
+
+local function translateText(text)
+    if not text or type(text) ~= "string" then return text end
+    if Translations[text] then return Translations[text] end
+    local translated = text
+    for en, cn in pairs(Translations) do
+        translated = translated:gsub(en, cn)
+    end
+    return translated
+end
+
+local translatedElements = {}
+local originalTexts = {}
+
+local function safeTranslateElement(element)
+    if translatedElements[element] then return end
+    
+    pcall(function()
+        if element:IsA("TextLabel") or element:IsA("TextButton") or element:IsA("TextBox") then
+            local currentText = element.Text
+            if currentText and currentText ~= "" then
+                if not originalTexts[element] then
+                    originalTexts[element] = currentText
+                end
+                
+                local translatedText = translateText(currentText)
+                if translatedText ~= currentText then
+                    element.Text = translatedText
+                    translatedElements[element] = true
+                end
+            end
+        end
+    end)
+end
+
+local function reTranslateAllUI()
+    translatedElements = {}
+    for _, gui in ipairs(game:GetService("CoreGui"):GetDescendants()) do
+        safeTranslateElement(gui)
+    end
+    local player = game:GetService("Players").LocalPlayer
+    if player and player:FindFirstChild("PlayerGui") then
+        for _, gui in ipairs(player.PlayerGui:GetDescendants()) do
+            safeTranslateElement(gui)
+        end
+    end
+end
+
+local function setupSmartListener()
+    local function onTextPropertyChanged(element)
+        if translatedElements[element] then
+            local currentText = element.Text
+            local originalText = originalTexts[element]
+            
+            if currentText == originalText or translateText(currentText) == currentText then
+                translatedElements[element] = nil
+                return
+            end
+  
